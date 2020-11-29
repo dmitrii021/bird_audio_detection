@@ -66,18 +66,25 @@ def read_test_data():
 #%%
 train_data = np.load('train_data.npy')
 train_labels = np.load('train_labels.npy')
+# test_data = np.load('test_data.npy')
 train_labels = np.asarray(train_labels, dtype = int)
+
+
+
+
 #%%
-X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(train_data, train_labels, test_size = 0.2)
+X_train, X_valid, y_train, y_valid = train_test_split(train_data, train_labels, test_size = 0.2)
+del train_data
+del train_labels
 #%%
-y_train_full = keras.utils.to_categorical(y_train_full);
-y_test_full = keras.utils.to_categorical(y_test_full);
+y_train = keras.utils.to_categorical(y_train);
+y_valid = keras.utils.to_categorical(y_valid);
 #%%
-ratio = 0.5
-X_train = X_train_full[0:int(ratio*len(X_train_full)), :, :]
-X_test = X_test_full[0:int(ratio*len(X_test_full)), :, :]
-y_train = y_train_full[0:int(ratio*len(y_train_full)), :]
-y_test = y_test_full[0:int(ratio*len(y_test_full)), :]
+ratio = 0.3
+X_train = X_valid[0:int(ratio*len(X_train)), :, :]
+X_valid = X_valid[0:int(ratio*len(X_valid)), :, :]
+y_train = y_train[0:int(ratio*len(y_train)), :]
+y_valid = y_valid[0:int(ratio*len(y_valid)), :]
 
 
 #%%
@@ -85,7 +92,7 @@ opt = keras.optimizers.Adam(learning_rate=0.002)
 model = Sequential()
 # 
 model.add(BatchNormalization(input_shape = (862, 40)))
-model.add(Bidirectional(CuDNNLSTM(80, return_sequences=False), input_shape=(862, 40)))
+model.add(Bidirectional(LSTM(80, return_sequences=False), input_shape=(862, 40)))
 # model.add(Attention(862))
 #model.add(Dropout(0.2))
 model.add(Dense(200, activation = 'relu'))
@@ -94,4 +101,5 @@ model.compile(loss='categorical_crossentropy', optimizer = opt, metrics = ['accu
 model.summary()
 
 #%%
-model.fit(X_train,y_train, batch_size=32, epochs = 20, validation_data = (X_test, y_test))
+model.fit(X_train,y_train, batch_size=32, epochs = 20, validation_data = (X_valid, y_valid))
+probs = model.predict(test_data, verbose=1)
