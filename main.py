@@ -66,7 +66,7 @@ def read_test_data():
 #%%
 train_data = np.load('train_data.npy')
 train_labels = np.load('train_labels.npy')
-# test_data = np.load('test_data.npy')
+test_data = np.load('test_data.npy')
 train_labels = np.asarray(train_labels, dtype = int)
 
 
@@ -103,3 +103,11 @@ model.summary()
 #%%
 model.fit(X_train,y_train, batch_size=32, epochs = 20, validation_data = (X_valid, y_valid))
 probs = model.predict(test_data, verbose=1)
+
+# Write to csv file
+with open("submission1.csv", "w") as fp: 
+    fp.write("Id,Predicted\n") 
+    for idx in range(test_data.shape[0]): 
+        fp.write(f"{idx:05},{probs[idx]}\n") 
+
+files.download("submission1.csv")
