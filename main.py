@@ -106,7 +106,7 @@ probs = model.predict(test_data, verbose=1)
 
 # Write to csv file
 with open("submission1.csv", "w") as fp: 
-    fp.write("Id,Predicted\n") 
+    fp.write("ID,Predicted\n") 
     for idx in range(test_data.shape[0]): 
         fp.write(f"{idx:05},{probs[idx][1]}\n") 
 
