@@ -6,8 +6,15 @@ Created on Fri Nov 27 23:45:17 2020
 """
 import numpy as np
 import csv
+import keras
 from librosa.feature import melspectrogram
 from librosa import core
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Conv1D, Flatten, Bidirectional, LSTM, Dropout, BatchNormalization
+from tensorflow.compat.v1.keras.layers import CuDNNLSTM
+from tensorflow.keras.preprocessing import image
 
 def read_train_data():
     folder1_size = 7690
@@ -56,8 +63,35 @@ def read_test_data():
         
     return data
     
+#%%
+train_data = np.load('train_data.npy')
+train_labels = np.load('train_labels.npy')
+train_labels = np.asarray(train_labels, dtype = int)
+#%%
+X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(train_data, train_labels, test_size = 0.2)
+#%%
+y_train_full = keras.utils.to_categorical(y_train_full);
+y_test_full = keras.utils.to_categorical(y_test_full);
+#%%
+ratio = 0.5
+X_train = X_train_full[0:int(ratio*len(X_train_full)), :, :]
+X_test = X_test_full[0:int(ratio*len(X_test_full)), :, :]
+y_train = y_train_full[0:int(ratio*len(y_train_full)), :]
+y_test = y_test_full[0:int(ratio*len(y_test_full)), :]
 
-train_data, train_labels = read_train_data()
-# test_data = read_test_data()
 
-    
+#%%
+opt = keras.optimizers.Adam(learning_rate=0.002)
+model = Sequential()
+# 
+model.add(BatchNormalization(input_shape = (862, 40)))
+model.add(Bidirectional(CuDNNLSTM(80, return_sequences=False), input_shape=(862, 40)))
+# model.add(Attention(862))
+#model.add(Dropout(0.2))
+model.add(Dense(200, activation = 'relu'))
+model.add(Dense(2, activation = 'softmax'))
+model.compile(loss='categorical_crossentropy', optimizer = opt, metrics = ['accuracy'])
+model.summary()
+
+#%%
+model.fit(X_train,y_train, batch_size=32, epochs = 20, validation_data = (X_test, y_test))
