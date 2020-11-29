@@ -108,6 +108,5 @@ probs = model.predict(test_data, verbose=1)
 with open("submission1.csv", "w") as fp: 
     fp.write("Id,Predicted\n") 
     for idx in range(test_data.shape[0]): 
-        fp.write(f"{idx:05},{probs[idx]}\n") 
+        fp.write(f"{idx:05},{probs[idx][1]}\n") 
 
-files.download("submission1.csv")
